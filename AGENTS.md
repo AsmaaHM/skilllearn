@@ -28,3 +28,9 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Project rules
+
+- The app shell (desktop sidebar + mobile bottom nav) wraps `<Outlet />` in `src/routes/__root.tsx`; screens render only their content. Why: one consistent layout across all screens.
+- Skill screens read placeholder data from `src/lib/skills-data.ts` until storage exists. Why: one swap point when a backend is added.
+- Theme (light/dark) is a `.dark` class on `<html>`, set by `src/lib/theme.tsx` plus a pre-hydration script. Why: avoids a light flash for dark-theme users.
