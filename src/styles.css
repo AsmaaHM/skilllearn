@@ -63,7 +63,8 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
-:root {
+:root,
+.light {
   --radius: 0.75rem;
   --background: oklch(0.982 0.006 95);
   --foreground: oklch(0.23 0.02 250);
