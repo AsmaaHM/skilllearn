@@ -9,104 +9,136 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as SkillsIndexRouteImport } from './routes/skills.index'
-import { Route as SkillsSkillIdRouteImport } from './routes/skills.$skillId'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
+import { Route as AuthenticatedSkillsIndexRouteImport } from './routes/_authenticated/skills.index'
+import { Route as AuthenticatedSkillsSkillIdRouteImport } from './routes/_authenticated/skills.$skillId'
 
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SettingsRoute = SettingsRouteImport.update({
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const SkillsIndexRoute = SkillsIndexRouteImport.update({
-  id: '/skills/',
-  path: '/skills/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SkillsSkillIdRoute = SkillsSkillIdRouteImport.update({
-  id: '/skills/$skillId',
-  path: '/skills/$skillId',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const AuthenticatedSkillsIndexRoute =
+  AuthenticatedSkillsIndexRouteImport.update({
+    id: '/skills/',
+    path: '/skills/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedSkillsSkillIdRoute =
+  AuthenticatedSkillsSkillIdRouteImport.update({
+    id: '/skills/$skillId',
+    path: '/skills/$skillId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
-  '/skills/$skillId': typeof SkillsSkillIdRoute
-  '/skills/': typeof SkillsIndexRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
+  '/skills/': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
-  '/skills/$skillId': typeof SkillsSkillIdRoute
-  '/skills': typeof SkillsIndexRoute
+  '/settings': typeof AuthenticatedSettingsRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
+  '/skills': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/settings': typeof SettingsRoute
-  '/skills/$skillId': typeof SkillsSkillIdRoute
-  '/skills/': typeof SkillsIndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
+  '/_authenticated/skills/$skillId': typeof AuthenticatedSkillsSkillIdRoute
+  '/_authenticated/skills/': typeof AuthenticatedSkillsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths: '/' | '/settings' | '/skills/$skillId' | '/skills/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/settings' | '/skills/$skillId' | '/skills'
-  id: '__root__' | '/' | '/settings' | '/skills/$skillId' | '/skills/'
+  to: '/settings' | '/' | '/skills/$skillId' | '/skills'
+  id:
+    | '__root__'
+    | '/_authenticated'
+    | '/_authenticated/settings'
+    | '/_authenticated/'
+    | '/_authenticated/skills/$skillId'
+    | '/_authenticated/skills/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  SettingsRoute: typeof SettingsRoute
-  SkillsSkillIdRoute: typeof SkillsSkillIdRoute
-  SkillsIndexRoute: typeof SkillsIndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/settings': {
-      id: '/settings'
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
       path: '/settings'
       fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/skills/': {
-      id: '/skills/'
+    '/_authenticated/skills/': {
+      id: '/_authenticated/skills/'
       path: '/skills'
       fullPath: '/skills/'
-      preLoaderRoute: typeof SkillsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSkillsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/skills/$skillId': {
-      id: '/skills/$skillId'
+    '/_authenticated/skills/$skillId': {
+      id: '/_authenticated/skills/$skillId'
       path: '/skills/$skillId'
       fullPath: '/skills/$skillId'
-      preLoaderRoute: typeof SkillsSkillIdRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedSkillsSkillIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+  AuthenticatedSkillsSkillIdRoute: typeof AuthenticatedSkillsSkillIdRoute
+  AuthenticatedSkillsIndexRoute: typeof AuthenticatedSkillsIndexRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+  AuthenticatedSkillsSkillIdRoute: AuthenticatedSkillsSkillIdRoute,
+  AuthenticatedSkillsIndexRoute: AuthenticatedSkillsIndexRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  SettingsRoute: SettingsRoute,
-  SkillsSkillIdRoute: SkillsSkillIdRoute,
-  SkillsIndexRoute: SkillsIndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
