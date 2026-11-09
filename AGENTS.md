@@ -34,3 +34,5 @@ use the editor.
 - The app shell (desktop sidebar + mobile bottom nav) wraps `<Outlet />` in `src/routes/__root.tsx`; screens render only their content. Why: one consistent layout across all screens.
 - Skill screens read placeholder data from `src/lib/skills-data.ts` until storage exists. Why: one swap point when a backend is added.
 - Theme (light/dark) is a `.dark` class on `<html>`, set by `src/lib/theme.tsx` plus a pre-hydration script. Why: avoids a light flash for dark-theme users.
+- Profiles are created only by the `on_auth_user_created` trigger (no client INSERT grant); `skills.user_id` references `profiles.id`, not `auth.users`. Why: guarantees one profile per user and keeps app tables off the auth schema.
+- Allowed skill categories are enforced by a CHECK constraint on `skills.category`; change the constraint and the UI list together. Why: the database is the source of truth for the fixed list.
