@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { BookOpen, LayoutDashboard, Settings, Sprout } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { placeholderUser } from "@/lib/skills-data";
+import { useCurrentProfile } from "@/lib/auth";
 
 const navItems = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, exact: true },
@@ -31,6 +31,10 @@ function initials(name: string) {
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
+  const { data: profile } = useCurrentProfile();
+  const displayName = profile?.displayName ?? "";
+  const email = profile?.email ?? "";
+
   return (
     <div className="min-h-screen bg-background">
       {/* Desktop sidebar */}
@@ -54,11 +58,11 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="border-t border-sidebar-border p-4">
           <div className="flex min-w-0 items-center gap-3">
             <span className="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-              {initials(placeholderUser.displayName)}
+              {initials(displayName)}
             </span>
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium">{placeholderUser.displayName}</p>
-              <p className="truncate text-xs text-muted-foreground">{placeholderUser.email}</p>
+              <p className="truncate text-sm font-medium">{displayName || "\u00a0"}</p>
+              <p className="truncate text-xs text-muted-foreground">{email || "\u00a0"}</p>
             </div>
           </div>
         </div>
@@ -68,7 +72,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background/90 px-4 backdrop-blur md:hidden">
         <Logo />
         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-accent text-xs font-semibold text-accent-foreground">
-          {initials(placeholderUser.displayName)}
+          {initials(displayName)}
         </span>
       </header>
 
