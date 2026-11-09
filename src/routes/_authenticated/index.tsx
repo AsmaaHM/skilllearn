@@ -6,7 +6,7 @@ import { ProgressBar, SectionCard, SkillRow, StatCard } from "@/components/skill
 import { Button } from "@/components/ui/button";
 import { placeholderSkills, placeholderUser, summarizeSkills } from "@/lib/skills-data";
 
-export const Route = createFileRoute("/")({
+export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
     meta: [
       { title: "Dashboard · SkillLearn" },

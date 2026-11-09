@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { STATUS_LABELS, placeholderSkills, type SkillStatus } from "@/lib/skills-data";
 
-export const Route = createFileRoute("/skills/")({
+export const Route = createFileRoute("/_authenticated/skills/")({
   head: () => ({
     meta: [
       { title: "Skills · SkillLearn" },
