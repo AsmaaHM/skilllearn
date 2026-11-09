@@ -6,7 +6,7 @@ import { ProgressBar, StatusBadge } from "@/components/skill-ui";
 import { Button } from "@/components/ui/button";
 import { formatDate, getSkillById } from "@/lib/skills-data";
 
-export const Route = createFileRoute("/skills/$skillId")({
+export const Route = createFileRoute("/_authenticated/skills/$skillId")({
   loader: ({ params }) => {
     const skill = getSkillById(params.skillId);
     if (!skill) throw notFound();
