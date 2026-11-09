@@ -8,6 +8,13 @@
       "when": 1794196708535,
       "tag": "0000_skilllearn_profiles_and_skills",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794196727108,
+      "tag": "0001_tighten_profiles_skills_grants",
+      "breakpoints": true
     }
   ]
 }
