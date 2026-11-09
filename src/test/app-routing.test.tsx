@@ -14,4 +14,13 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("opens the Dashboard by default and has Skills and Settings screens", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    expect(router.matchRoutes("/").at(-1)?.routeId).toBe("/");
+    expect(router.matchRoutes("/skills").at(-1)?.routeId).toBe("/skills/");
+    expect(router.matchRoutes("/skills/typescript").at(-1)?.routeId).toBe("/skills/$skillId");
+    expect(router.matchRoutes("/settings").at(-1)?.routeId).toBe("/settings");
+  });
 });
