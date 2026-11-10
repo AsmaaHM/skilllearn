@@ -67,7 +67,7 @@ export function authErrorMessage(error: { code?: string | undefined; message?: s
     case "over_request_rate_limit":
       return "Too many attempts. Please wait a moment and try again.";
     case "weak_password":
-      return "That password is too easy to guess. Choose a stronger one.";
+      return "That password is too easy to guess or has appeared in a known data breach. Choose a different one.";
     case "same_password":
       return "Your new password must be different from your current one.";
     case "email_address_invalid":
