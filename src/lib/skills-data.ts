@@ -132,6 +132,3 @@ export function formatDate(iso: string | null): string {
     year: "numeric",
   });
 }
-
-// Placeholder profile until accounts exist.
-
