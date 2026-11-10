@@ -34,7 +34,7 @@ describe("registration rules", () => {
   it("requires the confirmation to match the password", () => {
     const r = registerSchema.safeParse({ ...valid, confirmPassword: "learning2" });
     expect(r.success).toBe(false);
-    expect(r.error?.issues[0].path).toEqual(["confirmPassword"]);
+    expect(r.error?.issues[0]?.path).toEqual(["confirmPassword"]);
   });
 });
 
