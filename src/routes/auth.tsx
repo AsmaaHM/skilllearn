@@ -18,7 +18,7 @@ interface LoginSearch {
 export const Route = createFileRoute("/auth")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>): LoginSearch =>
-    search.notice === "password-reset" ? { notice: "password-reset" } : {},
+    search["notice"] === "password-reset" ? { notice: "password-reset" } : {},
   beforeLoad: redirectIfSignedIn,
   head: () => ({
     meta: [

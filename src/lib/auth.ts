@@ -70,7 +70,7 @@ export async function signOutToLogin(
 export function isRecoverySession(accessToken: string | undefined): boolean {
   if (!accessToken) return false;
   try {
-    const payload = accessToken.split(".")[1];
+    const payload = accessToken.split(".")[1] ?? "";
     const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
     const amr: unknown = json?.amr;
     return Array.isArray(amr) && amr.some((entry) => entry?.method === "recovery");
