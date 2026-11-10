@@ -31,7 +31,9 @@ use the editor.
 
 ## Project rules
 
-- The app shell (desktop sidebar + mobile bottom nav) wraps `<Outlet />` in `src/routes/__root.tsx`; screens render only their content. Why: one consistent layout across all screens.
+- The app shell (desktop sidebar + mobile bottom nav) is rendered by `src/routes/__root.tsx` only when the `/_authenticated` route matched; screens render only their content, and sign-in screens use `AuthLayout`. Why: one consistent layout for signed-in screens without showing navigation to signed-out visitors.
+- Signed-in screens live under `src/routes/_authenticated/` (client-only `getUser()` gate redirecting to `/auth`); sign-in screens are top-level routes. Email verification is enforced by Cloud Auth refusing sessions to unconfirmed users, not by app code. Why: one gate, and the auth server is the source of truth.
+- Auth form rules and error wording live in `src/lib/auth-validation.ts` (tested in `src/test/auth-validation.test.ts`). Why: one place for validation shared by every auth screen.
 - Skill screens read placeholder data from `src/lib/skills-data.ts` until storage exists. Why: one swap point when a backend is added.
 - Theme (light/dark) is a `.dark` class on `<html>`, set by `src/lib/theme.tsx` plus a pre-hydration script. Why: avoids a light flash for dark-theme users.
 - Profiles are created only by the `on_auth_user_created` trigger (no client INSERT grant); `skills.user_id` references `profiles.id`, not `auth.users`. Why: guarantees one profile per user and keeps app tables off the auth schema.
