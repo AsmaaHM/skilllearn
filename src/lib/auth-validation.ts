@@ -78,6 +78,9 @@ export function authErrorMessage(error: { code?: string | undefined; message?: s
     case "signup_disabled":
       return "New registrations are currently closed.";
     default:
+      if (/email address is not allowed/i.test(error?.message ?? "")) {
+        return "This email address can't receive email. Check it for typos or use a different one.";
+      }
       return "Something went wrong. Please try again.";
   }
 }
