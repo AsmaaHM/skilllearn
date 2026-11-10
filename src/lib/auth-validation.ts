@@ -56,7 +56,7 @@ export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
 
 /** Turns an auth error into a message a learner can act on. */
-export function authErrorMessage(error: { code?: string; message?: string } | null | undefined): string {
+export function authErrorMessage(error: { code?: string | undefined; message?: string | undefined } | null | undefined): string {
   switch (error?.code) {
     case "invalid_credentials":
       return "Incorrect email or password.";
@@ -67,7 +67,7 @@ export function authErrorMessage(error: { code?: string; message?: string } | nu
     case "over_request_rate_limit":
       return "Too many attempts. Please wait a moment and try again.";
     case "weak_password":
-      return "That password is too easy to guess. Choose a stronger one.";
+      return "That password is too easy to guess or has appeared in a known data breach. Choose a different one.";
     case "same_password":
       return "Your new password must be different from your current one.";
     case "email_address_invalid":
@@ -78,6 +78,9 @@ export function authErrorMessage(error: { code?: string; message?: string } | nu
     case "signup_disabled":
       return "New registrations are currently closed.";
     default:
+      if (/email address is not allowed/i.test(error?.message ?? "")) {
+        return "This email address can't receive email. Check it for typos or use a different one.";
+      }
       return "Something went wrong. Please try again.";
   }
 }

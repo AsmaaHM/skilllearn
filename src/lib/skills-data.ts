@@ -132,9 +132,3 @@ export function formatDate(iso: string | null): string {
     year: "numeric",
   });
 }
-
-// Placeholder profile until accounts exist.
-export const placeholderUser = {
-  displayName: "Alex Morgan",
-  email: "alex@example.com",
-};

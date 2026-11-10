@@ -8,9 +8,9 @@ import { cn } from "@/lib/utils";
 
 interface AuthLayoutProps {
   title: string;
-  description?: ReactNode;
+  description?: ReactNode | undefined;
   children: ReactNode;
-  footer?: ReactNode;
+  footer?: ReactNode | undefined;
 }
 
 /** Shared frame for Login, Registration and Password Reset. */
@@ -40,9 +40,9 @@ export function AuthLayout({ title, description, children, footer }: AuthLayoutP
 interface FormFieldProps extends ComponentProps<typeof Input> {
   id: string;
   label: string;
-  error?: string;
-  hint?: string;
-  labelAction?: ReactNode;
+  error?: string | undefined;
+  hint?: string | undefined;
+  labelAction?: ReactNode | undefined;
 }
 
 export function FormField({ id, label, error, hint, labelAction, className, ...inputProps }: FormFieldProps) {

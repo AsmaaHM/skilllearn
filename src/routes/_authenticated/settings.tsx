@@ -1,13 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Check, LogOut, Moon, Sun } from "lucide-react";
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/skill-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { placeholderUser } from "@/lib/skills-data";
+import { signOutToLogin, useCurrentProfile } from "@/lib/auth";
 import { useTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -30,6 +31,15 @@ const themeOptions: { value: Theme; label: string; icon: ComponentType<{ classNa
 
 function SettingsPage() {
   const { theme, setTheme } = useTheme();
+  const { data: profile } = useCurrentProfile();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    await signOutToLogin(queryClient, navigate);
+  };
 
   return (
     <>
@@ -42,7 +52,8 @@ function SettingsPage() {
               <Label htmlFor="display-name">Display name</Label>
               <Input
                 id="display-name"
-                defaultValue={placeholderUser.displayName}
+                key={profile?.id ?? "loading"}
+                defaultValue={profile?.displayName ?? ""}
                 className="max-w-sm"
               />
             </div>
@@ -89,10 +100,12 @@ function SettingsPage() {
             <Button
               type="button"
               variant="outline"
+              onClick={handleSignOut}
+              disabled={signingOut}
               className="text-destructive hover:bg-destructive/10 hover:text-destructive"
             >
               <LogOut />
-              Sign out
+              {signingOut ? "Signing out…" : "Sign out"}
             </Button>
           </div>
         </SectionCard>
