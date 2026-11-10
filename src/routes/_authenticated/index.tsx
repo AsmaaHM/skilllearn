@@ -4,7 +4,8 @@ import { ArrowRight, CheckCircle2, Layers, Timer, TrendingUp } from "lucide-reac
 import { PageHeader } from "@/components/page-header";
 import { ProgressBar, SectionCard, SkillRow, StatCard } from "@/components/skill-ui";
 import { Button } from "@/components/ui/button";
-import { placeholderSkills, placeholderUser, summarizeSkills } from "@/lib/skills-data";
+import { useCurrentProfile } from "@/lib/auth";
+import { placeholderSkills, summarizeSkills } from "@/lib/skills-data";
 
 export const Route = createFileRoute("/_authenticated/")({
   head: () => ({
@@ -28,7 +29,8 @@ const statusOrder = { in_progress: 0, not_started: 1, completed: 2 } as const;
 
 function Dashboard() {
   const summary = summarizeSkills(placeholderSkills);
-  const firstName = placeholderUser.displayName.split(" ")[0];
+  const { data: profile } = useCurrentProfile();
+  const firstName = profile?.displayName.split(" ")[0];
   const overview = [...placeholderSkills]
     .sort((a, b) => statusOrder[a.status] - statusOrder[b.status] || b.progress - a.progress)
     .slice(0, 5);
@@ -38,7 +40,7 @@ function Dashboard() {
   return (
     <>
       <PageHeader
-        title={`Welcome back, ${firstName}`}
+        title={firstName ? `Welcome back, ${firstName}` : "Welcome back"}
         description="Here's how your learning is going."
       />
 
