@@ -17,6 +17,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { ThemeProvider, themeInitScript } from "../lib/theme";
 import { AppShell } from "../components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
+import { markRecoveryPending } from "@/lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -144,6 +145,14 @@ function RootComponent() {
 
   useEffect(() => {
     const { data } = supabase.auth.onAuthStateChange((event) => {
+      // Safety net: a reset link that opened any other screen still ends on the reset page.
+      if (event === "PASSWORD_RECOVERY") {
+        markRecoveryPending();
+        if (router.state.location.pathname !== "/reset-password") {
+          router.navigate({ to: "/reset-password", replace: true });
+        }
+        return;
+      }
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       // Re-runs route checks: a signed-out or expired session is sent back to Login.
       router.invalidate();

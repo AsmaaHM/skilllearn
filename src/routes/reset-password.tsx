@@ -8,7 +8,13 @@ import { useForm } from "react-hook-form";
 import { AuthLayout, FormError, FormField, authLinkClass } from "@/components/auth-layout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { isRecoverySession } from "@/lib/auth";
+import {
+  clearRecoveryPending,
+  isRecoveryPending,
+  markRecoveryPending,
+  readAuthLinkHash,
+  type AuthLinkHash,
+} from "@/lib/auth";
 import {
   PASSWORD_HINT,
   authErrorMessage,
@@ -19,6 +25,13 @@ import {
 export const Route = createFileRoute("/reset-password")({
   // The reset link's sign-in details arrive in the browser address bar only.
   ssr: false,
+  // Read the link details before the sign-in library consumes and clears them.
+  beforeLoad: (): { linkHash: AuthLinkHash } => {
+    const linkHash = readAuthLinkHash(window.location.hash);
+    if (linkHash === "recovery") markRecoveryPending();
+    if (linkHash === "error") clearRecoveryPending();
+    return { linkHash };
+  },
   head: () => ({
     meta: [
       { title: "Choose a new password · SkillLearn" },
@@ -43,28 +56,35 @@ function ResetPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({ resolver: zodResolver(resetPasswordSchema) });
 
+  // Fixed at arrival: later route refreshes no longer see the link details in the address.
+  const [linkHash] = useState(Route.useRouteContext().linkHash);
+
   useEffect(() => {
     // An expired or already-used link comes back with an error instead of a session.
-    if (new URLSearchParams(window.location.hash.slice(1)).has("error")) {
+    if (linkHash === "error") {
       setLinkState("invalid");
       return;
     }
 
-    let settled = false;
+    let active = true;
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY") {
-        settled = true;
+      if (event === "PASSWORD_RECOVERY" && active) {
+        markRecoveryPending();
         setLinkState("ready");
       }
     });
 
+    // Resolves once the link's details have been turned into a session.
     supabase.auth.getSession().then(({ data }) => {
-      if (settled) return;
-      setLinkState(isRecoverySession(data.session?.access_token) ? "ready" : "invalid");
+      if (!active) return;
+      setLinkState(data.session && isRecoveryPending() ? "ready" : "invalid");
     });
 
-    return () => sub.subscription.unsubscribe();
-  }, []);
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [linkHash]);
 
   const onSubmit = handleSubmit(async ({ password }) => {
     setFormError(null);
@@ -74,6 +94,7 @@ function ResetPasswordPage() {
       return;
     }
     // End the reset session so the learner logs in fresh with the new password.
+    clearRecoveryPending();
     await queryClient.cancelQueries();
     queryClient.clear();
     await supabase.auth.signOut();
