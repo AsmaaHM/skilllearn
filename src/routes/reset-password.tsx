@@ -56,7 +56,8 @@ function ResetPasswordPage() {
     formState: { errors, isSubmitting },
   } = useForm<ResetPasswordValues>({ resolver: zodResolver(resetPasswordSchema) });
 
-  const { linkHash } = Route.useRouteContext();
+  // Fixed at arrival: later route refreshes no longer see the link details in the address.
+  const [linkHash] = useState(Route.useRouteContext().linkHash);
 
   useEffect(() => {
     // An expired or already-used link comes back with an error instead of a session.
