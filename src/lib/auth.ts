@@ -41,6 +41,7 @@ export function useCurrentProfile() {
 
 /** For Login and Registration: send already signed-in users to the Dashboard. */
 export async function redirectIfSignedIn() {
+  redirectRecoveryLink();
   const {
     data: { session },
   } = await supabase.auth.getSession();
@@ -66,15 +67,56 @@ export async function signOutToLogin(
   navigate({ to: "/auth", replace: true });
 }
 
-/** True when the session came from a password-reset email link. */
-export function isRecoverySession(accessToken: string | undefined): boolean {
-  if (!accessToken) return false;
+export type AuthLinkHash = "recovery" | "error" | "none";
+
+/**
+ * Reads what an email link put after "#" in the address. A password-reset link
+ * carries the sign-in details plus `type=recovery`; a used or expired link carries `error`.
+ */
+export function readAuthLinkHash(hash: string): AuthLinkHash {
+  const params = new URLSearchParams(hash.replace(/^#/, ""));
+  if (params.has("error") || params.has("error_code")) return "error";
+  if (params.get("type") === "recovery" && params.has("access_token")) return "recovery";
+  return "none";
+}
+
+// Remembers, for this tab only, that the current session came from a reset link,
+// so a refresh of the reset page still shows the form. Sign-in tokens never say so themselves.
+const RECOVERY_FLAG = "skilllearn:password-recovery";
+
+export function markRecoveryPending() {
   try {
-    const payload = accessToken.split(".")[1] ?? "";
-    const json = JSON.parse(atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
-    const amr: unknown = json?.amr;
-    return Array.isArray(amr) && amr.some((entry) => entry?.method === "recovery");
+    sessionStorage.setItem(RECOVERY_FLAG, "1");
+  } catch {
+    /* storage blocked: the form still works for this page load */
+  }
+}
+
+export function isRecoveryPending(): boolean {
+  try {
+    return sessionStorage.getItem(RECOVERY_FLAG) === "1";
   } catch {
     return false;
   }
+}
+
+export function clearRecoveryPending() {
+  try {
+    sessionStorage.removeItem(RECOVERY_FLAG);
+  } catch {
+    /* nothing to clear */
+  }
+}
+
+/**
+ * For any screen a reset link might land on (e.g. the home page when the link falls back
+ * to the site address): send it to the reset page with the link details intact, before
+ * anything else signs the visitor in and lets the guard route them elsewhere.
+ */
+export function redirectRecoveryLink() {
+  if (typeof window === "undefined") return;
+  if (window.location.pathname === "/reset-password") return;
+  if (readAuthLinkHash(window.location.hash) !== "recovery") return;
+  markRecoveryPending();
+  throw redirect({ to: "/reset-password", hash: window.location.hash.slice(1) });
 }
