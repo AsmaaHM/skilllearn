@@ -14,7 +14,8 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { ThemeProvider, themeInitScript } from "../lib/theme";
+import { ThemeProvider, themeInitScript, useTheme } from "../lib/theme";
+import { Toaster } from "@/components/ui/sonner";
 import { AppShell } from "../components/app-shell";
 import { supabase } from "@/integrations/supabase/client";
 import { markRecoveryPending } from "@/lib/auth";
@@ -176,7 +177,13 @@ function RootComponent() {
         ) : (
           <Outlet />
         )}
+        <ThemedToaster />
       </ThemeProvider>
     </QueryClientProvider>
   );
+}
+
+function ThemedToaster() {
+  const { theme } = useTheme();
+  return <Toaster theme={theme} position="top-center" richColors closeButton />;
 }

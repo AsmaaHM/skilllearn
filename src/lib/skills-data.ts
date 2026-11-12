@@ -1,4 +1,4 @@
-// Placeholder data used to demonstrate the interface until real storage is added.
+// Sample skills still shown on the Dashboard only. The Skills screens use saved skills (src/lib/skills.ts).
 
 export type SkillStatus = "not_started" | "in_progress" | "completed";
 
@@ -103,10 +103,6 @@ export const placeholderSkills: Skill[] = [
   },
 ];
 
-export function getSkillById(id: string): Skill | undefined {
-  return placeholderSkills.find((skill) => skill.id === id);
-}
-
 export interface SkillSummary {
   total: number;
   inProgress: number;
@@ -122,13 +118,4 @@ export function summarizeSkills(skills: Skill[]): SkillSummary {
   const overallProgress =
     total === 0 ? 0 : Math.round(skills.reduce((sum, s) => sum + s.progress, 0) / total);
   return { total, inProgress, completed, notStarted: total - inProgress - completed, overallProgress };
-}
-
-export function formatDate(iso: string | null): string {
-  if (!iso) return "—";
-  return new Date(`${iso}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
 }
