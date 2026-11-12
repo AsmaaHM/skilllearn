@@ -1,20 +1,25 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, CalendarDays, Clock, Pencil, Tag, Trash2 } from "lucide-react";
+import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  useRouter,
+  type ErrorComponentProps,
+} from "@tanstack/react-router";
+import { AlertCircle, ArrowLeft, CalendarCheck, Clock, Pencil, Tag, Trash2 } from "lucide-react";
 import type { ComponentType } from "react";
 
+import { DeleteSkillDialog, SkillFormDialog } from "@/components/skill-dialogs";
 import { ProgressBar, StatusBadge } from "@/components/skill-ui";
 import { Button } from "@/components/ui/button";
-import { formatDate, getSkillById } from "@/lib/skills-data";
+import { Skeleton } from "@/components/ui/skeleton";
+import { describeSkillError, formatSkillDate, skillQuery, skillsQuery, type SkillRecord } from "@/lib/skills";
 
 export const Route = createFileRoute("/_authenticated/skills/$skillId")({
-  loader: ({ params }) => {
-    const skill = getSkillById(params.skillId);
-    if (!skill) throw notFound();
-    return { skill };
-  },
+  loader: ({ context, params }) => context.queryClient.ensureQueryData(skillQuery(params.skillId)),
   head: ({ loaderData }) => {
-    const title = loaderData ? `${loaderData.skill.name} · SkillLearn` : "Skill not found · SkillLearn";
-    const description = loaderData?.skill.description ?? "This skill could not be found.";
+    const title = loaderData ? `${loaderData.name} · SkillLearn` : "Skill · SkillLearn";
+    const description = loaderData?.description || "Details and progress for one of your skills.";
     return {
       meta: [
         { title },
@@ -24,6 +29,10 @@ export const Route = createFileRoute("/_authenticated/skills/$skillId")({
       ],
     };
   },
+  pendingMs: 150,
+  pendingMinMs: 300,
+  pendingComponent: SkillLoading,
+  errorComponent: SkillError,
   notFoundComponent: SkillNotFound,
   component: SkillDetail,
 });
@@ -41,7 +50,20 @@ function BackLink() {
 }
 
 function SkillDetail() {
-  const { skill } = Route.useLoaderData();
+  const { skillId } = Route.useParams();
+  const { data: skill } = useSuspenseQuery(skillQuery(skillId));
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const handleDeleted = async () => {
+    // Drop it from the list right away, leave this page, then refresh from the database.
+    queryClient.setQueryData(skillsQuery.queryKey, (old: SkillRecord[] | undefined) =>
+      old?.filter((s) => s.id !== skill.id),
+    );
+    await navigate({ to: "/skills", replace: true });
+    queryClient.removeQueries({ queryKey: skillQuery(skill.id).queryKey });
+    void queryClient.invalidateQueries({ queryKey: skillsQuery.queryKey });
+  };
 
   return (
     <>
@@ -51,19 +73,30 @@ function SkillDetail() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0">
             <StatusBadge status={skill.status} />
-            <h1 className="mt-3 text-2xl font-semibold sm:text-3xl">{skill.name}</h1>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground sm:text-base">
-              {skill.description}
+            <h1 className="mt-3 break-words text-2xl font-semibold sm:text-3xl">{skill.name}</h1>
+            <p className="mt-2 max-w-2xl whitespace-pre-line break-words text-sm text-muted-foreground sm:text-base">
+              {skill.description || "No description yet."}
             </p>
           </div>
           <div className="flex shrink-0 gap-2">
-            <Button variant="outline" disabled title="Coming soon">
-              <Pencil />
-              Edit
-            </Button>
-            <Button variant="outline" size="icon" disabled title="Coming soon" aria-label="Delete skill">
-              <Trash2 />
-            </Button>
+            <SkillFormDialog
+              skill={skill}
+              trigger={
+                <Button variant="outline">
+                  <Pencil />
+                  Edit
+                </Button>
+              }
+            />
+            <DeleteSkillDialog
+              skill={skill}
+              onDeleted={handleDeleted}
+              trigger={
+                <Button variant="outline" size="icon" aria-label="Delete skill" title="Delete skill">
+                  <Trash2 />
+                </Button>
+              }
+            />
           </div>
         </div>
 
@@ -78,8 +111,8 @@ function SkillDetail() {
 
       <dl className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
         <Detail icon={Tag} label="Category" value={skill.category} />
-        <Detail icon={CalendarDays} label="Started" value={formatDate(skill.startedOn)} />
-        <Detail icon={Clock} label="Last updated" value={formatDate(skill.updatedOn)} />
+        <Detail icon={CalendarCheck} label="Target completion" value={formatSkillDate(skill.targetCompletionDate)} />
+        <Detail icon={Clock} label="Last updated" value={formatSkillDate(skill.updatedAt)} />
       </dl>
     </>
   );
@@ -104,6 +137,49 @@ function Detail({
         <dd className="truncate text-sm font-medium">{value}</dd>
       </div>
     </div>
+  );
+}
+
+function SkillLoading() {
+  return (
+    <>
+      <BackLink />
+      <div className="rounded-xl border bg-card p-5 sm:p-7" aria-busy="true">
+        <Skeleton className="h-5 w-24 rounded-full" />
+        <Skeleton className="mt-4 h-8 w-64 max-w-full" />
+        <Skeleton className="mt-3 h-4 w-full max-w-xl" />
+        <Skeleton className="mt-10 h-3 w-full" />
+      </div>
+      <div className="mt-4 grid gap-3 sm:grid-cols-3 sm:gap-4">
+        {[0, 1, 2].map((i) => (
+          <Skeleton key={i} className="h-[74px] rounded-xl" />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function SkillError({ error, reset }: ErrorComponentProps) {
+  const router = useRouter();
+  return (
+    <>
+      <BackLink />
+      <div role="alert" className="flex flex-col items-center rounded-xl border bg-card px-5 py-14 text-center">
+        <AlertCircle className="size-6 text-destructive" />
+        <p className="mt-3 font-medium">This skill didn't load</p>
+        <p className="mt-1 text-sm text-muted-foreground">{describeSkillError(error)}</p>
+        <Button
+          variant="outline"
+          className="mt-5"
+          onClick={() => {
+            void router.invalidate();
+            reset();
+          }}
+        >
+          Try again
+        </Button>
+      </div>
+    </>
   );
 }
 

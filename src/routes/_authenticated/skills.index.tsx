@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/skills/")({
   pendingMinMs: 300,
   pendingComponent: SkillsLoading,
   errorComponent: SkillsError,
-  notFoundComponent: SkillsError as never,
+  notFoundComponent: () => <p className="text-sm text-muted-foreground">Skills not found.</p>,
   component: SkillsPage,
 });
 
