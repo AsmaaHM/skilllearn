@@ -136,7 +136,7 @@ export function SkillFormDialog({
           </Field>
 
           <Field id="skill-category" label="Category" error={errors.category}>
-            <Select value={values.category || undefined} onValueChange={(v) => set("category", v as SkillCategory)}>
+            <Select value={values.category} onValueChange={(v) => set("category", v as SkillCategory)}>
               <SelectTrigger id="skill-category" {...invalid("skill-category", errors.category)}>
                 <SelectValue placeholder="Choose a category" />
               </SelectTrigger>
