@@ -3,7 +3,16 @@ import { ChevronRight } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import { STATUS_LABELS, type Skill, type SkillStatus } from "@/lib/skills-data";
+import { STATUS_LABELS, type SkillStatus } from "@/lib/skills-data";
+
+/** What a skill row needs; works for saved skills and the Dashboard's sample skills. */
+export interface SkillRowData {
+  id: string;
+  name: string;
+  category: string;
+  progress: number;
+  status: SkillStatus;
+}
 
 const statusBadgeClass: Record<SkillStatus, string> = {
   not_started: "bg-muted text-muted-foreground",
@@ -84,7 +93,7 @@ export function StatCard({
   );
 }
 
-export function SkillRow({ skill }: { skill: Skill }) {
+export function SkillRow({ skill }: { skill: SkillRowData }) {
   return (
     <Link
       to="/skills/$skillId"

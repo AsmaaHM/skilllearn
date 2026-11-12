@@ -152,6 +152,7 @@ export function describeSkillError(error: unknown): string {
   }
   if (e.code === "PGRST116") return "This skill no longer exists. It may have been deleted.";
   if (e.code === "42501") return "You don't have permission to change this skill.";
+  if (e.code === "23503") return "Your profile isn't set up yet, so skills can't be saved. Sign out and back in, then try again.";
   if (e.code === "23514") return "Some values aren't allowed. Check the fields and try again.";
   if (e.code === "PGRST301" || /jwt|not signed in/i.test(msg)) {
     return "Your session has ended. Sign in again to continue.";
