@@ -35,6 +35,34 @@ export const currentProfileQuery = queryOptions({
   staleTime: 5 * 60 * 1000,
 });
 
+/** Saves a new display name to the signed-in user's own profile row. Returns the saved name. */
+export async function updateDisplayName(displayName: string): Promise<string> {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw { code: "PGRST301", message: "Not signed in" };
+  const { data, error } = await supabase
+    .from("profiles")
+    .update({ display_name: displayName })
+    .eq("id", session.user.id)
+    .select("display_name")
+    .single();
+  if (error) throw error;
+  return data.display_name;
+}
+
+/** Turns a failed profile save into a short message people can act on. */
+export function describeProfileError(error: unknown): string {
+  const e = (error ?? {}) as { code?: string; message?: string };
+  const msg = e.message ?? "";
+  if (/failed to fetch|network|load failed/i.test(msg)) {
+    return "Couldn't reach the server. Check your connection and try again.";
+  }
+  if (e.code === "PGRST301" || /jwt|not signed in/i.test(msg)) return "Your session has ended. Sign in again to continue.";
+  if (e.code === "PGRST116") return "Your profile couldn't be found. Sign out and back in, then try again.";
+  return "Your name couldn't be saved. Please try again.";
+}
+
 export function useCurrentProfile() {
   return useQuery(currentProfileQuery);
 }
