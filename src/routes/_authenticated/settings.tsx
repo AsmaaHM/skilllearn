@@ -1,14 +1,23 @@
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { Check, LogOut, Moon, Sun } from "lucide-react";
-import { useState, type ComponentType } from "react";
+import { Check, Loader2, LogOut, Moon, Sun } from "lucide-react";
+import { useState, type ComponentType, type FormEvent } from "react";
+import { toast } from "sonner";
 
 import { PageHeader } from "@/components/page-header";
 import { SectionCard } from "@/components/skill-ui";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { signOutToLogin, useCurrentProfile } from "@/lib/auth";
+import {
+  currentProfileQuery,
+  describeProfileError,
+  signOutToLogin,
+  updateDisplayName,
+  useCurrentProfile,
+  type CurrentProfile,
+} from "@/lib/auth";
+import { displayNameSchema } from "@/lib/auth-validation";
 import { useTheme, type Theme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 
@@ -47,20 +56,17 @@ function SettingsPage() {
 
       <div className="space-y-6">
         <SectionCard title="Profile" description="This is how your name appears in SkillLearn.">
-          <form className="space-y-4 p-4 sm:p-5" onSubmit={(e) => e.preventDefault()}>
-            <div className="space-y-2">
-              <Label htmlFor="display-name">Display name</Label>
-              <Input
-                id="display-name"
-                key={profile?.id ?? "loading"}
-                defaultValue={profile?.displayName ?? ""}
-                className="max-w-sm"
-              />
+          {profile ? (
+            <DisplayNameForm key={profile.id} profile={profile} />
+          ) : (
+            <div className="space-y-4 p-4 sm:p-5">
+              <div className="space-y-2">
+                <Label htmlFor="display-name">Display name</Label>
+                <Input id="display-name" disabled className="max-w-sm" />
+              </div>
+              <Button disabled>Save changes</Button>
             </div>
-            <Button type="submit" disabled title="Coming soon">
-              Save changes
-            </Button>
-          </form>
+          )}
         </SectionCard>
 
         <SectionCard title="Appearance" description="Choose a light or dark theme.">
@@ -111,6 +117,65 @@ function SettingsPage() {
         </SectionCard>
       </div>
     </>
+  );
+}
+
+function DisplayNameForm({ profile }: { profile: CurrentProfile }) {
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState(profile.displayName);
+  const [touched, setTouched] = useState(false);
+
+  const parsed = displayNameSchema.safeParse(value);
+  const error = parsed.success ? null : parsed.error.issues[0]?.message ?? "Enter your display name.";
+  const changed = parsed.success && parsed.data !== profile.displayName;
+
+  const mutation = useMutation({
+    mutationFn: updateDisplayName,
+    onSuccess: (saved) => {
+      queryClient.setQueryData(currentProfileQuery.queryKey, (old) => (old ? { ...old, displayName: saved } : old));
+      setValue(saved);
+      toast.success("Display name updated", { description: saved });
+    },
+    onError: (err) => toast.error("Couldn't save your name", { description: describeProfileError(err) }),
+  });
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    setTouched(true);
+    if (!parsed.success || !changed || mutation.isPending) return;
+    mutation.mutate(parsed.data);
+  };
+
+  const showError = touched && error;
+
+  return (
+    <form noValidate className="space-y-4 p-4 sm:p-5" onSubmit={handleSubmit}>
+      <div className="space-y-2">
+        <Label htmlFor="display-name">Display name</Label>
+        <Input
+          id="display-name"
+          value={value}
+          onChange={(e) => {
+            setValue(e.target.value);
+            setTouched(true);
+          }}
+          maxLength={50}
+          autoComplete="name"
+          className="max-w-sm"
+          aria-invalid={showError ? true : undefined}
+          aria-describedby={showError ? "display-name-error" : undefined}
+        />
+        {showError && (
+          <p id="display-name-error" className="text-sm text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+      <Button type="submit" disabled={!changed || mutation.isPending}>
+        {mutation.isPending && <Loader2 className="animate-spin" />}
+        {mutation.isPending ? "Saving…" : "Save changes"}
+      </Button>
+    </form>
   );
 }
 

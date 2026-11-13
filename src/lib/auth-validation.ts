@@ -26,13 +26,18 @@ const passwordsMatch = (v: { password: string; confirmPassword: string }) =>
   v.password === v.confirmPassword;
 const mismatch = { message: "Passwords don't match.", path: ["confirmPassword"] };
 
+const displayNameField = z
+  .string()
+  .trim()
+  .min(1, { message: "Enter your display name." })
+  .max(50, { message: "Display name must be 50 characters or fewer." });
+
+/** Display name rule shared by Registration and Settings. */
+export const displayNameSchema = displayNameField;
+
 export const registerSchema = z
   .object({
-    displayName: z
-      .string()
-      .trim()
-      .min(1, { message: "Enter your display name." })
-      .max(50, { message: "Display name must be 50 characters or fewer." }),
+    displayName: displayNameField,
     email: emailField,
     password: newPasswordField,
     confirmPassword: confirmField,
