@@ -3,15 +3,16 @@ import { ChevronRight } from "lucide-react";
 import type { ComponentType, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import { STATUS_LABELS, type SkillStatus } from "@/lib/skills-data";
+import { STATUS_LABELS, formatSkillDate, type SkillStatus } from "@/lib/skills";
 
-/** What a skill row needs; works for saved skills and the Dashboard's sample skills. */
+/** What a skill row needs. */
 export interface SkillRowData {
   id: string;
   name: string;
   category: string;
   progress: number;
   status: SkillStatus;
+  targetCompletionDate?: string | null;
 }
 
 const statusBadgeClass: Record<SkillStatus, string> = {
@@ -93,7 +94,7 @@ export function StatCard({
   );
 }
 
-export function SkillRow({ skill }: { skill: SkillRowData }) {
+export function SkillRow({ skill, showTargetDate = false }: { skill: SkillRowData; showTargetDate?: boolean }) {
   return (
     <Link
       to="/skills/$skillId"
@@ -105,7 +106,12 @@ export function SkillRow({ skill }: { skill: SkillRowData }) {
           <p className="truncate font-medium">{skill.name}</p>
           <StatusBadge status={skill.status} />
         </div>
-        <p className="mt-0.5 text-xs text-muted-foreground">{skill.category}</p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          {skill.category}
+          {showTargetDate && skill.targetCompletionDate && (
+            <> · Target {formatSkillDate(skill.targetCompletionDate)}</>
+          )}
+        </p>
         <div className="mt-3 flex items-center gap-3">
           <ProgressBar value={skill.progress} status={skill.status} className="max-w-xs" />
           <span className="w-9 shrink-0 text-right text-xs font-medium tabular-nums text-muted-foreground">
