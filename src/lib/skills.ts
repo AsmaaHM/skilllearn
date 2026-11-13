@@ -4,7 +4,6 @@ import { z } from "zod";
 
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
-import type { SkillStatus } from "@/lib/skills-data";
 
 // Must match the allowed values in the skills table; change both together.
 export const SKILL_CATEGORIES = ["Programming", "Languages", "Design", "Productivity", "Business"] as const;
@@ -12,6 +11,14 @@ export type SkillCategory = (typeof SKILL_CATEGORIES)[number];
 
 export const SKILL_NAME_MAX = 100;
 export const SKILL_DESCRIPTION_MAX = 1000;
+
+export type SkillStatus = "not_started" | "in_progress" | "completed";
+
+export const STATUS_LABELS: Record<SkillStatus, string> = {
+  not_started: "Not started",
+  in_progress: "In progress",
+  completed: "Completed",
+};
 
 export interface SkillRecord {
   id: string;
@@ -44,6 +51,25 @@ export function toSkillRecord(row: Tables<"skills">): SkillRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
+}
+
+// ---------- Dashboard summary ----------
+
+export interface SkillSummary {
+  total: number;
+  inProgress: number; // progress 1–99
+  completed: number; // progress 100
+  notStarted: number; // progress 0
+  overallProgress: number; // rounded mean progress across all skills; 0 with no skills
+}
+
+export function summarizeSkills(skills: readonly { progress: number }[]): SkillSummary {
+  const total = skills.length;
+  const inProgress = skills.filter((s) => s.progress > 0 && s.progress < 100).length;
+  const completed = skills.filter((s) => s.progress === 100).length;
+  const overallProgress =
+    total === 0 ? 0 : Math.round(skills.reduce((sum, s) => sum + s.progress, 0) / total);
+  return { total, inProgress, completed, notStarted: total - inProgress - completed, overallProgress };
 }
 
 // ---------- Form rules ----------
