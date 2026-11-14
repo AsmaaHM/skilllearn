@@ -7,7 +7,7 @@ Each user has a private account. Their skills and profile are visible only to th
 ## Features
 
 - **Accounts**: registration with email verification, login, sign-out, and password reset by email.
-- **Dashboard**: shows Total Skills, In Progress, Completed and Overall Progress, plus a Skills Overview of recently updated skills.
+- **Dashboard**: shows Total Skills, In Progress, Completed and Overall Progress, plus a Skills Overview of up to five skills, with in-progress skills listed first.
 - **Skill management**: create, view, edit and delete skills. Deleting asks for confirmation first.
 - **Skill fields**: name, category, an optional description, an optional target completion date, and progress.
 - **Manual progress tracking**: progress is a whole number from 0 to 100 that you set yourself. Status comes from progress: 0 is Not Started, 1–99 is In Progress, and 100 is Completed.
