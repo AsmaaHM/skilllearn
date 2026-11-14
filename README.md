@@ -73,8 +73,8 @@ Each user has a private account. Their skills and profile are visible only to th
 ### Clone and install
 
 ```sh
-git clone <this-repository-url>
-cd <repository-name>
+git clone https://github.com/AsmaaHM/skilllearn.git
+cd skilllearn
 npm install        # or: bun install
 ```
 
